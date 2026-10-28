@@ -195,7 +195,9 @@ fun EcoRutasApp(
                                 pesajes = pesajesDelPunto,
                                 rutaAbierta = rutaActual?.estado != EstadoRuta.CERRADA,
                                 puedeRegistrar = sesion?.privilegios?.contains("PESAJE_CREAR") == true,
+                                puedeEditar = sesion?.privilegios?.contains("PESAJE_EDITAR") == true || sesion?.privilegios?.contains("PESAJE_EDITAR_CUALQUIERA") == true,
                                 puedeAnular = sesion?.privilegios?.contains("PESAJE_ANULAR") == true,
+                                puedeOmitir = sesion?.privilegios?.contains("RUTA_PUNTO_OMITIR") == true,
                                 usuarioId = sesion?.usuarioId ?: 0L,
                                 puedeEditarCualquiera = sesion?.privilegios?.contains("PESAJE_EDITAR_CUALQUIERA") == true,
                                 onVolver = { pantallaActual = Pantalla.RUTA },
@@ -349,7 +351,7 @@ fun PantallaLogin(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            "Usuarios de prueba: operario1, supervisor1, admin, operario2\nContraseña: Eco2026*",
+            "Usuarios de prueba: operario1, supervisor1, admin, operario2, auditor1\nContraseña: Eco2026*",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.outline
         )
@@ -513,7 +515,9 @@ fun PantallaDetallePunto(
     pesajes: List<Pesaje>,
     rutaAbierta: Boolean,
     puedeRegistrar: Boolean,
+    puedeEditar: Boolean,
     puedeAnular: Boolean,
+    puedeOmitir: Boolean,
     usuarioId: Long,
     puedeEditarCualquiera: Boolean,
     onVolver: () -> Unit,
@@ -559,7 +563,7 @@ fun PantallaDetallePunto(
                 }
             }
 
-            if (rutaAbierta) {
+            if (puedeOmitir && rutaAbierta) {
                 OutlinedButton(
                     onClick = { mostrarDialogoOmision = true },
                     modifier = Modifier.weight(1f)
@@ -628,7 +632,7 @@ fun PantallaDetallePunto(
                                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                                     horizontalArrangement = Arrangement.End
                                 ) {
-                                    val puedeEditar = puedeEditarCualquiera || (pesaje.operarioId == usuarioId)
+                                    val puedeEditar = puedeEditar && (puedeEditarCualquiera || (pesaje.operarioId == usuarioId))
                                     if (puedeEditar) {
                                         TextButton(onClick = { onEditarPesaje(pesaje) }) {
                                             Text("Corregir", fontSize = 12.sp)
