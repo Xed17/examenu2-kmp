@@ -234,4 +234,9 @@ La implementación de las solicitudes de cambio se realiza en ramas separadas de
   - Mapeo bidireccional en DTOs, sincronización a backend y visualización en `PantallaDetallePunto`.
   - Validación con prueba unitaria `test07_HumedadEstimada`.
 - **SC-D:** Contador de pesajes pendientes reactivo con SQLDelight (`sc-d-chambilla`).
+  - Rama: `sc-d-chambilla`, Tag: `v1.4-sc-d`.
+  - Exposición reactiva mediante Flow de SQLDelight: `queries.contarPesajesPendientes(usuarioId).asFlow().mapToOneOrNull()`.
+  - Badge reactivo en `TopAppBar` que refleja en tiempo real el estado (`X pend.` en color de alerta o `Sincronizado` en verde).
+  - Banner interactivo de advertencia en `PantallaRuta` cuando existen pesajes pendientes por subir.
+  - Validación con prueba unitaria `test08_ContadorPesajesPendientesReactivo`.
 
