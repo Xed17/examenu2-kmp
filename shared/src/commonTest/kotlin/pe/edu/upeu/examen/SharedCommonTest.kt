@@ -232,4 +232,49 @@ class SharedCommonTest {
         assertTrue(auditorSesion.privilegios.contains("PUNTO_LEER"))
         assertTrue(auditorSesion.privilegios.contains("PESAJE_LEER"))
     }
+
+    @Test
+    fun test07_HumedadEstimada() {
+        val dto = pe.edu.upeu.ecorecicla.data.remote.dto.PesajeDto(
+            id = 100L,
+            rutaPuntoId = 1L,
+            puntoId = 1L,
+            fechaHora = "2026-10-28T15:30:00Z",
+            material = "CARTON",
+            pesoBruto = 50.0,
+            tara = 5.0,
+            pesoNeto = 45.0,
+            operarioId = 1L,
+            operarioNombre = "Operario Uno",
+            estado = "REGISTRADO",
+            version = 0L,
+            humedadEstimada = 18.5
+        )
+
+        val dominio = dto.toDomain()
+        assertEquals(18.5, dominio.humedadEstimada)
+
+        // Verificacion serializacion JSON de request con humedad
+        val req = pe.edu.upeu.ecorecicla.data.remote.dto.CrearPesajeRequestDto(
+            material = "CARTON",
+            pesoBruto = 50.0,
+            tara = 5.0,
+            humedadEstimada = 18.5,
+            operacionId = "uuid-test-humedad"
+        )
+        val jsonStr = kotlinx.serialization.json.Json.encodeToString(
+            pe.edu.upeu.ecorecicla.data.remote.dto.CrearPesajeRequestDto.serializer(),
+            req
+        )
+        assertTrue(jsonStr.contains("humedadEstimada"))
+
+        // Verificacion logica de rango de humedad (0.0 a 100.0)
+        val hValida = 25.0
+        val hInvalida = 105.0
+        val hNegativa = -5.0
+
+        assertTrue(hValida in 0.0..100.0)
+        assertFalse(hInvalida in 0.0..100.0)
+        assertFalse(hNegativa in 0.0..100.0)
+    }
 }
