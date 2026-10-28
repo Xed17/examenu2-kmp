@@ -218,6 +218,11 @@ Ejecución de pruebas:
 
 La implementación de las solicitudes de cambio se realiza en ramas separadas derivadas de `develop`:
 - **SC-A:** Filtro "Solo pendientes de pesar" (`sc-a-chambilla`).
+  - Rama: `sc-a-chambilla`, Tag: `v1.1-sc-a`.
+  - Agrega consulta SQLDelight `listarPuntosDeRutaConFiltro` discriminando `atendido == 0`.
+  - Control interactivo `Switch` en `PantallaRuta` ("Solo pendientes de pesar") que actualiza reactivamente la lista de puntos de acopio.
+  - Validación con prueba unitaria `test05_FiltroSoloPendientesDePesar`.
 - **SC-B:** Rol AUDITOR de solo lectura (`sc-b-chambilla`).
 - **SC-C:** Captura de Humedad Estimada (`sc-c-chambilla`).
 - **SC-D:** Contador de pesajes pendientes reactivo con SQLDelight (`sc-d-chambilla`).
+

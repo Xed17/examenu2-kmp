@@ -117,6 +117,27 @@ JOIN punto_local p ON rp.punto_id = p.id
 WHERE rp.ruta_id = :rutaId
 ORDER BY rp.secuencia ASC;
 
+listarPuntosDeRutaConFiltro:
+SELECT 
+    rp.id AS ruta_punto_id,
+    rp.ruta_id,
+    rp.secuencia,
+    rp.motivo_omision,
+    p.id AS punto_id,
+    p.razon_social,
+    p.direccion,
+    p.zona,
+    p.material_habitual,
+    CASE 
+        WHEN (EXISTS (SELECT 1 FROM pesaje_local pl WHERE pl.ruta_punto_id = rp.id AND pl.estado = 'REGISTRADO') OR rp.motivo_omision IS NOT NULL) THEN 1 
+        ELSE 0 
+    END AS atendido
+FROM ruta_punto_local rp
+JOIN punto_local p ON rp.punto_id = p.id
+WHERE rp.ruta_id = :rutaId
+  AND (:soloPendientes = 0 OR (NOT EXISTS (SELECT 1 FROM pesaje_local pl WHERE pl.ruta_punto_id = rp.id AND pl.estado = 'REGISTRADO') AND rp.motivo_omision IS NULL))
+ORDER BY rp.secuencia ASC;
+
 obtenerPuntoPorId:
 SELECT * FROM punto_local WHERE id = ?;
 
@@ -191,4 +212,3 @@ DELETE FROM operacion_pendiente WHERE operacion_uuid = ?;
 
 limpiarOperacionesDeUsuario:
 DELETE FROM operacion_pendiente WHERE usuario_propietario_id = :usuarioId;
-

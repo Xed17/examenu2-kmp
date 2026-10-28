@@ -185,4 +185,22 @@ class SharedCommonTest {
         assertEquals("SUBIR_PENDIENTE_POST", secuenciaLlamadas[0], "El envio debe ocurrir ANTES de la descarga")
         assertEquals("DESCARGAR_RUTA_GET", secuenciaLlamadas[1], "La descarga debe ocurrir DESPUES del envio")
     }
+
+    @Test
+    fun test05_FiltroSoloPendientesDePesar() {
+        val p1 = pe.edu.upeu.ecorecicla.domain.model.PuntoAcopio(1L, "Punto 1", "Av 1", "Norte", "CARTON", true, atendido = true)
+        val p2 = pe.edu.upeu.ecorecicla.domain.model.PuntoAcopio(2L, "Punto 2", "Av 2", "Norte", "PLASTICO", true, atendido = false)
+        val p3 = pe.edu.upeu.ecorecicla.domain.model.PuntoAcopio(3L, "Punto 3", "Av 3", "Centro", "VIDRIO", true, atendido = true)
+        val p4 = pe.edu.upeu.ecorecicla.domain.model.PuntoAcopio(4L, "Punto 4", "Av 4", "Sur", "METAL", true, atendido = false)
+
+        val listaOriginal = listOf(p1, p2, p3, p4)
+
+        val sinFiltro = listaOriginal.filter { true }
+        assertEquals(4, sinFiltro.size)
+
+        val soloPendientes = listaOriginal.filter { !it.atendido }
+        assertEquals(2, soloPendientes.size)
+        assertTrue(soloPendientes.all { !it.atendido })
+        assertEquals(listOf(2L, 4L), soloPendientes.map { it.id })
+    }
 }

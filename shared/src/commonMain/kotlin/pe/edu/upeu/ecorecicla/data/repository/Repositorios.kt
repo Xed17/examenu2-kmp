@@ -131,8 +131,9 @@ class RutaRepository(
             }
     }
 
-    fun observarPuntosDeRuta(rutaId: Long, query: String = ""): Flow<List<PuntoAcopio>> {
-        return dbManager.queries.listarPuntosDeRuta(rutaId)
+    fun observarPuntosDeRuta(rutaId: Long, query: String = "", soloPendientes: Boolean = false): Flow<List<PuntoAcopio>> {
+        val soloPendientesFlag = if (soloPendientes) 1L else 0L
+        return dbManager.queries.listarPuntosDeRutaConFiltro(rutaId, soloPendientesFlag)
             .asFlow()
             .mapToList(Dispatchers.Default)
             .map { rows ->

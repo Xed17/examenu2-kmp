@@ -46,7 +46,8 @@ fun EcoRutasApp(
     var mensajeBanner by remember { mutableStateOf<String?>(null) }
 
     var textoBusqueda by remember { mutableStateOf("") }
-    val puntosDeRuta by rutaRepo.observarPuntosDeRuta(rutaActual?.id ?: 1L, textoBusqueda).collectAsState(initial = emptyList())
+    var soloPendientes by remember { mutableStateOf(false) }
+    val puntosDeRuta by rutaRepo.observarPuntosDeRuta(rutaActual?.id ?: 1L, textoBusqueda, soloPendientes).collectAsState(initial = emptyList())
     val pesajesDelPunto by pesajeRepo.observarPesajesDePunto(puntoSeleccionado?.id ?: 0L).collectAsState(initial = emptyList())
     val contadorPendientes by pesajeRepo.observarContadorPendientes(sesion?.usuarioId ?: 0L).collectAsState(initial = 0L)
 
@@ -166,6 +167,8 @@ fun EcoRutasApp(
                             puntos = puntosDeRuta,
                             textoBusqueda = textoBusqueda,
                             onBusquedaCambio = { textoBusqueda = it },
+                            soloPendientes = soloPendientes,
+                            onSoloPendientesCambio = { soloPendientes = it },
                             onPuntoClick = { punto ->
                                 puntoSeleccionado = punto
                                 pantallaActual = Pantalla.DETALLE_PUNTO
@@ -359,6 +362,8 @@ fun PantallaRuta(
     puntos: List<PuntoAcopio>,
     textoBusqueda: String,
     onBusquedaCambio: (String) -> Unit,
+    soloPendientes: Boolean,
+    onSoloPendientesCambio: (Boolean) -> Unit,
     onPuntoClick: (PuntoAcopio) -> Unit,
     onCerrarRuta: () -> Unit,
     puedeCerrarRuta: Boolean
@@ -407,6 +412,19 @@ fun PantallaRuta(
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
             singleLine = true
         )
+
+        // Filtro SC-A: Solo pendientes de pesar
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Solo pendientes de pesar", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Switch(
+                checked = soloPendientes,
+                onCheckedChange = onSoloPendientesCambio
+            )
+        }
 
         // Lista de puntos
         if (puntos.isEmpty()) {
