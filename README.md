@@ -228,5 +228,10 @@ La implementación de las solicitudes de cambio se realiza en ramas separadas de
   - En `EcoRutasApp.kt` se ocultan y deshabilitan de la interfaz de usuario los botones de mutación ("+ Registrar Pesaje", "Corregir", "Anular", "Omitir Punto", "Cerrar Ruta").
   - Validación con prueba unitaria `test06_RolAuditorSoloLectura`.
 - **SC-C:** Captura de Humedad Estimada (`sc-c-chambilla`).
+  - Rama: `sc-c-chambilla`, Tag: `v1.3-sc-c`.
+  - Columna `humedad_estimada REAL` en tabla SQLite `pesaje_local`.
+  - Campo opcional en `PantallaFormularioPesaje` para ingresar porcentaje de humedad estimada con validación de rango (0.0% a 100.0%).
+  - Mapeo bidireccional en DTOs, sincronización a backend y visualización en `PantallaDetallePunto`.
+  - Validación con prueba unitaria `test07_HumedadEstimada`.
 - **SC-D:** Contador de pesajes pendientes reactivo con SQLDelight (`sc-d-chambilla`).
 

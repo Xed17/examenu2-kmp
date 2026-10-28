@@ -207,7 +207,8 @@ class PesajeRepository(
                         motivoAnulacion = row.motivo_anulacion,
                         pendiente = row.pendiente == 1L,
                         version = row.version_servidor,
-                        operacionId = row.operacion_uuid
+                        operacionId = row.operacion_uuid,
+                        humedadEstimada = row.humedad_estimada
                     )
                 }
             }
@@ -229,7 +230,8 @@ class PesajeRepository(
         tara: Double,
         observacion: String?,
         usuarioId: Long,
-        usuarioNombre: String
+        usuarioNombre: String,
+        humedadEstimada: Double? = null
     ): Result<Pesaje> = withContext(Dispatchers.Default) {
         try {
             if (bruto <= 0) return@withContext Result.failure(IllegalArgumentException("El peso bruto debe ser mayor a 0"))
@@ -259,7 +261,8 @@ class PesajeRepository(
                     pendiente = 1L,
                     propietario_sesion_id = usuarioId,
                     version_servidor = 0L,
-                    operacion_uuid = uuid
+                    operacion_uuid = uuid,
+                    humedad_estimada = humedadEstimada
                 )
 
                 val payload = json.encodeToString(
@@ -268,7 +271,8 @@ class PesajeRepository(
                         pesoBruto = bruto,
                         tara = tara,
                         observacion = observacion,
-                        operacionId = uuid
+                        operacionId = uuid,
+                        humedadEstimada = humedadEstimada
                     )
                 )
 
@@ -296,7 +300,8 @@ class PesajeRepository(
                 operarioNombre = usuarioNombre,
                 estado = EstadoPesaje.REGISTRADO,
                 pendiente = true,
-                operacionId = uuid
+                operacionId = uuid,
+                humedadEstimada = humedadEstimada
             )
             Result.success(creado)
         } catch (e: Throwable) {
@@ -310,7 +315,8 @@ class PesajeRepository(
         bruto: Double,
         tara: Double,
         observacion: String?,
-        usuarioId: Long
+        usuarioId: Long,
+        humedadEstimada: Double? = null
     ): Result<Unit> = withContext(Dispatchers.Default) {
         try {
             if (bruto <= tara) return@withContext Result.failure(IllegalArgumentException("El peso bruto debe ser mayor que la tara"))
@@ -323,6 +329,7 @@ class PesajeRepository(
                     tara = tara,
                     peso_neto = neto,
                     observacion = observacion,
+                    humedad_estimada = humedadEstimada,
                     pendiente = 1L,
                     id = pesajeId
                 )
@@ -333,7 +340,8 @@ class PesajeRepository(
                         material = material.uppercase(),
                         pesoBruto = bruto,
                         tara = tara,
-                        observacion = observacion
+                        observacion = observacion,
+                        humedadEstimada = humedadEstimada
                     )
                 )
                 dbManager.queries.insertarOperacionPendiente(
@@ -444,6 +452,7 @@ class SincronizacionRepository(
                                     tara = serverDto.tara,
                                     peso_neto = serverDto.pesoNeto,
                                     observacion = serverDto.observacion,
+                                    humedad_estimada = serverDto.humedadEstimada,
                                     pendiente = 0L,
                                     id = serverDto.id
                                 )
@@ -522,7 +531,8 @@ class SincronizacionRepository(
                             pendiente = 0L,
                             propietario_sesion_id = usuarioId,
                             version_servidor = p.version,
-                            operacion_uuid = p.operacionId
+                            operacion_uuid = p.operacionId,
+                            humedad_estimada = p.humedadEstimada
                         )
                         descargadosCount++
                     }

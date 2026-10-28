@@ -37,7 +37,8 @@ data class Pesaje(
     val motivoAnulacion: String? = null,
     val pendiente: Boolean = false,
     val version: Long = 0,
-    val operacionId: String? = null
+    val operacionId: String? = null,
+    val humedadEstimada: Double? = null
 )
 
 data class Sesion(

@@ -106,7 +106,8 @@ data class PesajeDto(
     val estado: String,
     val motivoAnulacion: String? = null,
     val version: Long,
-    val operacionId: String? = null
+    val operacionId: String? = null,
+    val humedadEstimada: Double? = null
 ) {
     fun toDomain(): Pesaje = Pesaje(
         id = id,
@@ -124,7 +125,8 @@ data class PesajeDto(
         motivoAnulacion = motivoAnulacion,
         pendiente = false,
         version = version,
-        operacionId = operacionId
+        operacionId = operacionId,
+        humedadEstimada = humedadEstimada
     )
 }
 
@@ -134,7 +136,8 @@ data class CrearPesajeRequestDto(
     val pesoBruto: Double,
     val tara: Double,
     val observacion: String? = null,
-    val operacionId: String? = null
+    val operacionId: String? = null,
+    val humedadEstimada: Double? = null
 )
 
 @Serializable
@@ -143,7 +146,8 @@ data class CorregirPesajeRequestDto(
     val pesoBruto: Double,
     val tara: Double,
     val observacion: String? = null,
-    val version: Long? = null
+    val version: Long? = null,
+    val humedadEstimada: Double? = null
 )
 
 @Serializable
