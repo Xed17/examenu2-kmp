@@ -203,4 +203,33 @@ class SharedCommonTest {
         assertTrue(soloPendientes.all { !it.atendido })
         assertEquals(listOf(2L, 4L), soloPendientes.map { it.id })
     }
+
+    @Test
+    fun test06_RolAuditorSoloLectura() = runTest {
+        val auditorSesion = pe.edu.upeu.ecorecicla.domain.model.Sesion(
+            usuarioId = 5L,
+            username = "auditor1",
+            nombre = "Auditor de Calidad",
+            rol = "AUDITOR",
+            privilegios = listOf("PUNTO_LEER", "PESAJE_LEER"),
+            token = "jwt-auditor-fake",
+            expiraEn = "2026-10-28T18:00:00Z"
+        )
+
+        // Verificacion de banderas de solo lectura
+        val puedeRegistrar = auditorSesion.privilegios.contains("PESAJE_CREAR")
+        val puedeEditar = auditorSesion.privilegios.contains("PESAJE_EDITAR")
+        val puedeAnular = auditorSesion.privilegios.contains("PESAJE_ANULAR")
+        val puedeCerrarRuta = auditorSesion.privilegios.contains("RUTA_CERRAR")
+        val puedeOmitir = auditorSesion.privilegios.contains("RUTA_PUNTO_OMITIR")
+
+        assertFalse(puedeRegistrar, "AUDITOR no debe tener permiso de crear pesajes")
+        assertFalse(puedeEditar, "AUDITOR no debe tener permiso de editar pesajes")
+        assertFalse(puedeAnular, "AUDITOR no debe tener permiso de anular pesajes")
+        assertFalse(puedeCerrarRuta, "AUDITOR no debe tener permiso de cerrar rutas")
+        assertFalse(puedeOmitir, "AUDITOR no debe tener permiso de omitir puntos")
+
+        assertTrue(auditorSesion.privilegios.contains("PUNTO_LEER"))
+        assertTrue(auditorSesion.privilegios.contains("PESAJE_LEER"))
+    }
 }
