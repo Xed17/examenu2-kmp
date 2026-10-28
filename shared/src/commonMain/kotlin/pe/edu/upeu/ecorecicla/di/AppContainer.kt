@@ -22,7 +22,7 @@ object AppContainer {
     var syncRepository: SincronizacionRepository? = null
         private set
 
-    fun initialize(driver: SqlDriver, baseUrl: String = "http://10.0.2.2:8080", httpClient: io.ktor.client.HttpClient? = null) {
+    fun initialize(driver: SqlDriver, baseUrl: String = "http://127.0.0.1:8080", httpClient: io.ktor.client.HttpClient? = null) {
         val dbMan = DatabaseManager(driver)
         val client = httpClient ?: EcoApiClient.crearHttpClient()
         val api = EcoApiClient(client, baseUrl = baseUrl)
@@ -38,5 +38,9 @@ object AppContainer {
         this.pesajeRepository = pesajeRepo
         this.syncRepository = syncRepo
     }
-}
 
+    fun setBaseUrl(newBaseUrl: String) {
+        val limpia = newBaseUrl.trim().removeSuffix("/")
+        apiClient?.baseUrl = limpia
+    }
+}

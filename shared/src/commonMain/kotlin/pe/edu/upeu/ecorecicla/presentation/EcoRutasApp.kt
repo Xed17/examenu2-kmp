@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import pe.edu.upeu.ecorecicla.data.repository.*
 import pe.edu.upeu.ecorecicla.domain.model.*
+import pe.edu.upeu.ecorecicla.di.AppContainer
 
 enum class Pantalla {
     LOGIN,
@@ -155,7 +156,9 @@ fun EcoRutasApp(
                                         mensajeBanner = it.message ?: "Credenciales inválidas"
                                     }
                                 }
-                            }
+                            },
+                            servidorActual = AppContainer.apiClient?.baseUrl ?: "http://127.0.0.1:8080",
+                            onCambiarServidor = { AppContainer.setBaseUrl(it) }
                         )
                     }
 
@@ -307,10 +310,14 @@ fun EcoRutasApp(
 
 @Composable
 fun PantallaLogin(
-    onLogin: (String, String) -> Unit
+    onLogin: (String, String) -> Unit,
+    servidorActual: String = "http://127.0.0.1:8080",
+    onCambiarServidor: (String) -> Unit = {}
 ) {
     var usuario by remember { mutableStateOf("operario1") }
     var contrasena by remember { mutableStateOf("Eco2026*") }
+    var urlServidor by remember { mutableStateOf(servidorActual) }
+    var mostrarAjustes by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -322,7 +329,7 @@ fun PantallaLogin(
         Text("🌿 EcoRecicla", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         Text("Gestión de Rutas y Pesajes", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
             value = usuario,
@@ -340,10 +347,71 @@ fun PantallaLogin(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Selector / Configuración de URL del servidor
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Servidor: $urlServidor",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.outline
+            )
+            TextButton(onClick = { mostrarAjustes = !mostrarAjustes }) {
+                Text(if (mostrarAjustes) "Ocultar" else "⚙ Red", fontSize = 11.sp)
+            }
+        }
+
+        if (mostrarAjustes) {
+            OutlinedTextField(
+                value = urlServidor,
+                onValueChange = {
+                    urlServidor = it
+                    onCambiarServidor(it)
+                },
+                label = { Text("URL Servidor Backend") },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                singleLine = true
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        urlServidor = "http://127.0.0.1:8080"
+                        onCambiarServidor(urlServidor)
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.filledTonalButtonColors()
+                ) {
+                    Text("127.0.0.1 (ADB)", fontSize = 10.sp)
+                }
+
+                Button(
+                    onClick = {
+                        urlServidor = "http://10.0.2.2:8080"
+                        onCambiarServidor(urlServidor)
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.filledTonalButtonColors()
+                ) {
+                    Text("10.0.2.2 (NAT)", fontSize = 10.sp)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { onLogin(usuario, contrasena) },
+            onClick = {
+                onCambiarServidor(urlServidor)
+                onLogin(usuario, contrasena)
+            },
             modifier = Modifier.fillMaxWidth().height(48.dp)
         ) {
             Text("Ingresar")
