@@ -1,0 +1,194 @@
+-- Esquema SQLDelight para EcoRecicla (EcoRutas)
+
+CREATE TABLE IF NOT EXISTS sesion_local (
+    usuario_id INTEGER NOT NULL PRIMARY KEY,
+    username TEXT NOT NULL,
+    nombre TEXT NOT NULL,
+    rol TEXT NOT NULL,
+    privilegios TEXT NOT NULL,
+    token TEXT NOT NULL,
+    expira_en TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ruta_local (
+    id INTEGER NOT NULL PRIMARY KEY,
+    fecha TEXT NOT NULL,
+    estado TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS punto_local (
+    id INTEGER NOT NULL PRIMARY KEY,
+    razon_social TEXT NOT NULL,
+    direccion TEXT NOT NULL,
+    zona TEXT NOT NULL,
+    material_habitual TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ruta_punto_local (
+    id INTEGER NOT NULL PRIMARY KEY,
+    ruta_id INTEGER NOT NULL,
+    punto_id INTEGER NOT NULL,
+    secuencia INTEGER NOT NULL,
+    motivo_omision TEXT
+);
+
+CREATE TABLE IF NOT EXISTS pesaje_local (
+    id INTEGER NOT NULL PRIMARY KEY,
+    ruta_punto_id INTEGER NOT NULL,
+    punto_id INTEGER NOT NULL,
+    fecha_hora TEXT NOT NULL,
+    material TEXT NOT NULL,
+    peso_bruto REAL NOT NULL,
+    tara REAL NOT NULL,
+    peso_neto REAL NOT NULL,
+    observacion TEXT,
+    operario_id INTEGER NOT NULL,
+    operario_nombre TEXT NOT NULL,
+    estado TEXT NOT NULL,
+    motivo_anulacion TEXT,
+    pendiente INTEGER NOT NULL DEFAULT 0,
+    propietario_sesion_id INTEGER NOT NULL,
+    version_servidor INTEGER NOT NULL DEFAULT 0,
+    operacion_uuid TEXT
+);
+
+CREATE TABLE IF NOT EXISTS operacion_pendiente (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    operacion_uuid TEXT NOT NULL UNIQUE,
+    usuario_propietario_id INTEGER NOT NULL,
+    tipo TEXT NOT NULL,
+    recurso_local_id INTEGER NOT NULL,
+    payload TEXT NOT NULL,
+    creada_en TEXT NOT NULL
+);
+
+-- Consultas de Sesion
+guardarSesion:
+INSERT OR REPLACE INTO sesion_local (usuario_id, username, nombre, rol, privilegios, token, expira_en)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+obtenerSesion:
+SELECT * FROM sesion_local LIMIT 1;
+
+borrarSesion:
+DELETE FROM sesion_local;
+
+-- Consultas de Ruta
+guardarRuta:
+INSERT OR REPLACE INTO ruta_local (id, fecha, estado, version)
+VALUES (?, ?, ?, ?);
+
+obtenerRutaActual:
+SELECT * FROM ruta_local LIMIT 1;
+
+actualizarEstadoRuta:
+UPDATE ruta_local SET estado = ?, version = version + 1 WHERE id = ?;
+
+-- Consultas de Puntos y RutaPuntos
+guardarPunto:
+INSERT OR REPLACE INTO punto_local (id, razon_social, direccion, zona, material_habitual)
+VALUES (?, ?, ?, ?, ?);
+
+guardarRutaPunto:
+INSERT OR REPLACE INTO ruta_punto_local (id, ruta_id, punto_id, secuencia, motivo_omision)
+VALUES (?, ?, ?, ?, ?);
+
+actualizarOmisionRutaPunto:
+UPDATE ruta_punto_local SET motivo_omision = ? WHERE ruta_id = ? AND punto_id = ?;
+
+listarPuntosDeRuta:
+SELECT 
+    rp.id AS ruta_punto_id,
+    rp.ruta_id,
+    rp.secuencia,
+    rp.motivo_omision,
+    p.id AS punto_id,
+    p.razon_social,
+    p.direccion,
+    p.zona,
+    p.material_habitual,
+    CASE 
+        WHEN (EXISTS (SELECT 1 FROM pesaje_local pl WHERE pl.ruta_punto_id = rp.id AND pl.estado = 'REGISTRADO') OR rp.motivo_omision IS NOT NULL) THEN 1 
+        ELSE 0 
+    END AS atendido
+FROM ruta_punto_local rp
+JOIN punto_local p ON rp.punto_id = p.id
+WHERE rp.ruta_id = :rutaId
+ORDER BY rp.secuencia ASC;
+
+obtenerPuntoPorId:
+SELECT * FROM punto_local WHERE id = ?;
+
+-- Consultas de Pesajes
+siguienteIdProvisional:
+SELECT COALESCE(MIN(id), 0) - 1
+FROM pesaje_local
+WHERE id < 0;
+
+insertarPesajeLocal:
+INSERT INTO pesaje_local (
+    id, ruta_punto_id, punto_id, fecha_hora, material, peso_bruto, tara, peso_neto,
+    observacion, operario_id, operario_nombre, estado, motivo_anulacion, pendiente,
+    propietario_sesion_id, version_servidor, operacion_uuid
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+actualizarPesajeLocal:
+UPDATE pesaje_local SET
+    material = ?,
+    peso_bruto = ?,
+    tara = ?,
+    peso_neto = ?,
+    observacion = ?,
+    pendiente = ?,
+    version_servidor = version_servidor + 1
+WHERE id = ?;
+
+anularPesajeLocal:
+UPDATE pesaje_local SET
+    estado = 'ANULADO',
+    motivo_anulacion = ?,
+    pendiente = ?
+WHERE id = ?;
+
+sustituirIdProvisional:
+UPDATE pesaje_local SET
+    id = :nuevoId,
+    pendiente = 0,
+    version_servidor = :versionServidor
+WHERE id = :idProvisional;
+
+listarPesajesDePunto:
+SELECT * FROM pesaje_local
+WHERE punto_id = :puntoId
+ORDER BY fecha_hora DESC, id DESC;
+
+listarPesajesPendientes:
+SELECT * FROM pesaje_local
+WHERE pendiente = 1 AND propietario_sesion_id = :usuarioId
+ORDER BY id ASC;
+
+contarPesajesPendientes:
+SELECT COUNT(*)
+FROM pesaje_local
+WHERE pendiente = 1 AND propietario_sesion_id = :usuarioId;
+
+limpiarPesajesConfirmados:
+DELETE FROM pesaje_local WHERE pendiente = 0;
+
+-- Consultas de Cola de Operaciones Pendientes
+insertarOperacionPendiente:
+INSERT INTO operacion_pendiente (operacion_uuid, usuario_propietario_id, tipo, recurso_local_id, payload, creada_en)
+VALUES (?, ?, ?, ?, ?, ?);
+
+listarOperacionesPendientesPorUsuario:
+SELECT * FROM operacion_pendiente
+WHERE usuario_propietario_id = :usuarioId
+ORDER BY id ASC;
+
+eliminarOperacionPendiente:
+DELETE FROM operacion_pendiente WHERE operacion_uuid = ?;
+
+limpiarOperacionesDeUsuario:
+DELETE FROM operacion_pendiente WHERE usuario_propietario_id = :usuarioId;
+
