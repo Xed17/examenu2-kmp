@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val driver = DriverFactory(applicationContext).createDriver()
-        AppContainer.initialize(driver, baseUrl = "http://10.0.2.2:8080")
+        AppContainer.initialize(driver, baseUrl = "http://127.0.0.1:8080")
 
         setContent {
             App()
