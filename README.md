@@ -223,6 +223,10 @@ La implementación de las solicitudes de cambio se realiza en ramas separadas de
   - Control interactivo `Switch` en `PantallaRuta` ("Solo pendientes de pesar") que actualiza reactivamente la lista de puntos de acopio.
   - Validación con prueba unitaria `test05_FiltroSoloPendientesDePesar`.
 - **SC-B:** Rol AUDITOR de solo lectura (`sc-b-chambilla`).
+  - Rama: `sc-b-chambilla`, Tag: `v1.2-sc-b`.
+  - Mapeo de privilegios de solo lectura (`PUNTO_LEER`, `PESAJE_LEER`).
+  - En `EcoRutasApp.kt` se ocultan y deshabilitan de la interfaz de usuario los botones de mutación ("+ Registrar Pesaje", "Corregir", "Anular", "Omitir Punto", "Cerrar Ruta").
+  - Validación con prueba unitaria `test06_RolAuditorSoloLectura`.
 - **SC-C:** Captura de Humedad Estimada (`sc-c-chambilla`).
 - **SC-D:** Contador de pesajes pendientes reactivo con SQLDelight (`sc-d-chambilla`).
 
