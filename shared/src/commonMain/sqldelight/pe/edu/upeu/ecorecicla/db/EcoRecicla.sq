@@ -50,7 +50,8 @@ CREATE TABLE IF NOT EXISTS pesaje_local (
     pendiente INTEGER NOT NULL DEFAULT 0,
     propietario_sesion_id INTEGER NOT NULL,
     version_servidor INTEGER NOT NULL DEFAULT 0,
-    operacion_uuid TEXT
+    operacion_uuid TEXT,
+    humedad_estimada REAL
 );
 
 CREATE TABLE IF NOT EXISTS operacion_pendiente (
@@ -151,8 +152,8 @@ insertarPesajeLocal:
 INSERT INTO pesaje_local (
     id, ruta_punto_id, punto_id, fecha_hora, material, peso_bruto, tara, peso_neto,
     observacion, operario_id, operario_nombre, estado, motivo_anulacion, pendiente,
-    propietario_sesion_id, version_servidor, operacion_uuid
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    propietario_sesion_id, version_servidor, operacion_uuid, humedad_estimada
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 actualizarPesajeLocal:
 UPDATE pesaje_local SET
@@ -161,6 +162,7 @@ UPDATE pesaje_local SET
     tara = ?,
     peso_neto = ?,
     observacion = ?,
+    humedad_estimada = ?,
     pendiente = ?,
     version_servidor = version_servidor + 1
 WHERE id = ?;

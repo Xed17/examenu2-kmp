@@ -238,7 +238,7 @@ fun EcoRutasApp(
                             PantallaFormularioPesaje(
                                 pesajeExistente = pesajeAEditar,
                                 onVolver = { pantallaActual = Pantalla.DETALLE_PUNTO },
-                                onGuardar = { mat, bruto, tara, obs ->
+                                onGuardar = { mat, bruto, tara, obs, humedad ->
                                     coroutineScope.launch {
                                         val uId = sesion?.usuarioId ?: 1L
                                         val uNom = sesion?.nombre ?: "Operario"
@@ -253,7 +253,8 @@ fun EcoRutasApp(
                                                 tara = tara,
                                                 observacion = obs,
                                                 usuarioId = uId,
-                                                usuarioNombre = uNom
+                                                usuarioNombre = uNom,
+                                                humedadEstimada = humedad
                                             )
                                             res.onSuccess {
                                                 mensajeBanner = "Pesaje registrado localmente (ID provisional ${it.id})"
@@ -268,7 +269,8 @@ fun EcoRutasApp(
                                                 bruto = bruto,
                                                 tara = tara,
                                                 observacion = obs,
-                                                usuarioId = uId
+                                                usuarioId = uId,
+                                                humedadEstimada = humedad
                                             )
                                             res.onSuccess {
                                                 mensajeBanner = "Pesaje corregido localmente"
@@ -616,6 +618,9 @@ fun PantallaDetallePunto(
 
                             Spacer(modifier = Modifier.height(4.dp))
                             Text("Bruto: ${pesaje.pesoBruto} kg • Tara: ${pesaje.tara} kg • Neto: ${pesaje.pesoNeto} kg", fontSize = 13.sp)
+                            if (pesaje.humedadEstimada != null) {
+                                Text("Humedad Estimada: ${pesaje.humedadEstimada}%", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                            }
                             Text("Operario: ${pesaje.operarioNombre} • ${pesaje.fechaHora}", fontSize = 11.sp, color = MaterialTheme.colorScheme.outline)
 
                             if (!pesaje.observacion.isNullOrBlank()) {
@@ -726,12 +731,15 @@ fun PantallaDetallePunto(
 fun PantallaFormularioPesaje(
     pesajeExistente: Pesaje?,
     onVolver: () -> Unit,
-    onGuardar: (material: String, bruto: Double, tara: Double, obs: String?) -> Unit
+    onGuardar: (material: String, bruto: Double, tara: Double, obs: String?, humedad: Double?) -> Unit
 ) {
     var material by remember { mutableStateOf(pesajeExistente?.material ?: "CARTON") }
     var pesoBrutoTexto by remember { mutableStateOf(pesajeExistente?.pesoBruto?.toString() ?: "") }
     var taraTexto by remember { mutableStateOf(pesajeExistente?.tara?.toString() ?: "0.0") }
+    var humedadTexto by remember { mutableStateOf(pesajeExistente?.humedadEstimada?.toString() ?: "") }
     var observacion by remember { mutableStateOf(pesajeExistente?.observacion ?: "") }
+
+    val humedadValida = humedadTexto.isBlank() || (humedadTexto.toDoubleOrNull()?.let { it in 0.0..100.0 } == true)
 
     val bruto = pesoBrutoTexto.toDoubleOrNull() ?: 0.0
     val tara = taraTexto.toDoubleOrNull() ?: 0.0
@@ -792,6 +800,15 @@ fun PantallaFormularioPesaje(
         }
 
         OutlinedTextField(
+            value = humedadTexto,
+            onValueChange = { humedadTexto = it },
+            label = { Text("Humedad Estimada (%) (opcional, 0 - 100)") },
+            isError = !humedadValida,
+            supportingText = if (!humedadValida) { { Text("Debe ser un porcentaje entre 0% y 100%") } } else null,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+        )
+
+        OutlinedTextField(
             value = observacion,
             onValueChange = { observacion = it },
             label = { Text("Observación (opcional)") },
@@ -802,11 +819,11 @@ fun PantallaFormularioPesaje(
 
         Button(
             onClick = {
-                if (bruto > tara && bruto > 0 && tara >= 0 && material.isNotBlank()) {
-                    onGuardar(material, bruto, tara, observacion.ifBlank { null })
+                if (bruto > tara && bruto > 0 && tara >= 0 && material.isNotBlank() && humedadValida) {
+                    onGuardar(material, bruto, tara, observacion.ifBlank { null }, humedadTexto.toDoubleOrNull())
                 }
             },
-            enabled = bruto > tara && bruto > 0 && tara >= 0 && material.isNotBlank(),
+            enabled = bruto > tara && bruto > 0 && tara >= 0 && material.isNotBlank() && humedadValida,
             modifier = Modifier.fillMaxWidth().height(48.dp)
         ) {
             Text("Guardar en este dispositivo")
