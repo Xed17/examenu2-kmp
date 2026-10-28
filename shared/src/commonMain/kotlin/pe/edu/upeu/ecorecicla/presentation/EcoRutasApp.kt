@@ -74,20 +74,18 @@ fun EcoRutasApp(
                         }
                     },
                     actions = {
-                        // Badge de pendientes
-                        if (contadorPendientes > 0) {
-                            Surface(
-                                color = MaterialTheme.colorScheme.error,
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.padding(end = 8.dp)
-                            ) {
-                                Text(
-                                    text = "$contadorPendientes pend.",
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
+                        // Badge de pendientes reactivo (SC-D)
+                        Surface(
+                            color = if (contadorPendientes > 0) MaterialTheme.colorScheme.error else Color(0xFF2E7D32),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text(
+                                text = if (contadorPendientes > 0) "$contadorPendientes pend." else "Sincronizado",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
                         }
 
                         // Boton Sync
@@ -165,6 +163,7 @@ fun EcoRutasApp(
                         PantallaRuta(
                             ruta = rutaActual,
                             puntos = puntosDeRuta,
+                            contadorPendientes = contadorPendientes,
                             textoBusqueda = textoBusqueda,
                             onBusquedaCambio = { textoBusqueda = it },
                             soloPendientes = soloPendientes,
@@ -364,6 +363,7 @@ fun PantallaLogin(
 fun PantallaRuta(
     ruta: Ruta?,
     puntos: List<PuntoAcopio>,
+    contadorPendientes: Long = 0L,
     textoBusqueda: String,
     onBusquedaCambio: (String) -> Unit,
     soloPendientes: Boolean,
@@ -375,6 +375,27 @@ fun PantallaRuta(
     var mostrarConfirmacionCierre by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+        // Banner reactivo de pesajes pendientes (SC-D)
+        if (contadorPendientes > 0) {
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "⚠️ Tienes $contadorPendientes pesaje(s) pendiente(s) de sincronizar.",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+
         // Cabecera de estado de ruta
         Card(
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),

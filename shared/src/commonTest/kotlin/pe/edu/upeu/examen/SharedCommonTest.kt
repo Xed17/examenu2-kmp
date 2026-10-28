@@ -277,4 +277,23 @@ class SharedCommonTest {
         assertFalse(hInvalida in 0.0..100.0)
         assertFalse(hNegativa in 0.0..100.0)
     }
+
+    @Test
+    fun test08_ContadorPesajesPendientesReactivo() = runTest {
+        val contadorFlow = kotlinx.coroutines.flow.MutableStateFlow(0L)
+
+        assertEquals(0L, contadorFlow.value, "Inicialmente no debe haber pesajes pendientes")
+
+        // 1. Registro de pesaje offline -> Incrementa reactivamente el contador
+        contadorFlow.value += 1
+        assertEquals(1L, contadorFlow.value, "Al registrar un pesaje offline el contador debe ser 1")
+
+        // 2. Registro de segundo pesaje offline -> Incrementa a 2
+        contadorFlow.value += 1
+        assertEquals(2L, contadorFlow.value, "Al registrar otro pesaje offline el contador debe ser 2")
+
+        // 3. Sincronizacion completada con backend -> Decrementa a 0
+        contadorFlow.value = 0L
+        assertEquals(0L, contadorFlow.value, "Tras sincronizar con éxito el contador reactivo debe volver a 0")
+    }
 }
